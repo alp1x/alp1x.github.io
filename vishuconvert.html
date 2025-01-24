@@ -6,6 +6,8 @@
   <style>
     body {
       font-family: Arial, sans-serif;
+	  background: #000;
+	  color: gray;
       max-width: 700px;
       margin: 20px auto;
     }
@@ -90,16 +92,18 @@ document.getElementById('convertBtn').addEventListener('click', () => {
 
     const nameCapitalized = capitalizeFirst(model);
 
-    // Yeni tablo formatı (2. tablo)
-    let newTable = `['${cleanedKey}'] = {\n` +
-                   `  ['name'] = '${nameCapitalized}',\n` +
-                   `  ['brand'] = '${model}',\n` +
-                   `  ['model'] = '${model}',\n` +
-                   `  ['price'] = ${price},\n` +
-                   `  ['category'] = '${userCategory}',\n` +  // <- kullanıcıdan gelen kategori
-                   `  ['hash'] = ${cleanedKey},\n` +
-                   `  ['shop'] = 'pdm',\n` +
-                   `},\n\n`;
+let newTable = 
+"['" + cleanedKey + "'] = {\n" +
+"  ['name'] = '" + nameCapitalized + "',\n" +
+"  ['brand'] = '" + model + "',\n" +
+"  ['model'] = '" + model + "',\n" +
+"  ['price'] = " + price + ",\n" +
+"  ['category'] = '" + userCategory + "',\n" +
+// Burada istediğin gibi backtick koy
+"  ['hash'] = `" + cleanedKey + "`,\n" +
+"  ['shop'] = 'pdm',\n" +
+"},\n\n";
+
     result += newTable;
   }
 
