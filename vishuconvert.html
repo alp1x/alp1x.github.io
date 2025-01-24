@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Lua Table Converter</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 700px;
+      margin: 20px auto;
+    }
+    textarea {
+      width: 100%;
+      height: 180px;
+      margin: 10px 0;
+    }
+    input {
+      width: 300px;
+      padding: 5px;
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Lua Tablo Dönüştürücü</h2>
+<p>1. Metin kutusuna birinci tablo verisini yapıştır.</p>
+<p>2. Aşağıdaki alana kategori adını gir (örnek: <code>compacts</code>).</p>
+
+<input id="categoryInput" type="text" placeholder="Kategori adı örn: compacts" />
+<button id="convertBtn">Dönüştür</button>
+
+<h3>Girdi (1. tablo formatı):</h3>
+<textarea id="inputArea" placeholder="[asbo] = {\n  [\"model\"] = \"asbo\",\n  [\"count\"] = 50,\n  [\"price\"] = 15000,\n},"></textarea>
+
+<h3>Çıktı (2. tablo formatı):</h3>
+<textarea id="outputArea" placeholder="..."></textarea>
+
+<script>
+/**
+ * Basit bir regex + parse yaklaşımıyla
+ * 1) [key] = { ... } bloklarını bulur
+ * 2) İçindeki ["model"], ["price"] gibi alanları yakalar
+ * 3) Girilen kategori değerini ekleyerek 2. tablo formatını oluşturur
+ */
+
+// Yardımcı: İlk harfi büyük yapmak için
+function capitalizeFirst(str) {
+  if (!str) return "";
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+document.getElementById('convertBtn').addEventListener('click', () => {
+  const input = document.getElementById('inputArea').value;
+  const outputArea = document.getElementById('outputArea');
+  // Kullanıcının girdiği kategori adını alalım
+  const userCategory = document.getElementById('categoryInput').value.trim() || "compacts";
+
+  // [key] = { ... } bloklarını yakalamak için:
+  const blockRegex = /\[([^\]]+)\]\s*=\s*\{([\s\S]*?)\},?/g;
+
+  let match;
+  let result = "";
+
+  while ((match = blockRegex.exec(input)) !== null) {
+    // Örneğin rawKey = asbo (veya `asbo`)
+    const rawKey = match[1].trim();
+    // backtick karakteri varsa temizleyelim
+    const cleanedKey = rawKey.replace(/`/g, "");
+
+    // Bu bloğun içi: ["model"] = "asbo", ["price"] = 15000, ...
+    const rawBody = match[2].trim();
+    const fieldRegex = /\["([^"]+)"\]\s*=\s*("?)([^",]+)\2,?/g;
+
+    let fieldMatch;
+    let model = "";
+    let price = "";
+
+    while ((fieldMatch = fieldRegex.exec(rawBody)) !== null) {
+      const fieldName = fieldMatch[1]; // model, price, count vb.
+      const fieldValue = fieldMatch[3]; 
+      
+      if (fieldName === "model") {
+        model = fieldValue;
+      }
+      if (fieldName === "price") {
+        price = fieldValue;
+      }
+    }
+
+    const nameCapitalized = capitalizeFirst(model);
+
+    // Yeni tablo formatı (2. tablo)
+    let newTable = `['${cleanedKey}'] = {\n` +
+                   `  ['name'] = '${nameCapitalized}',\n` +
+                   `  ['brand'] = '${model}',\n` +
+                   `  ['model'] = '${model}',\n` +
+                   `  ['price'] = ${price},\n` +
+                   `  ['category'] = '${userCategory}',\n` +  // <- kullanıcıdan gelen kategori
+                   `  ['hash'] = ${cleanedKey},\n` +
+                   `  ['shop'] = 'pdm',\n` +
+                   `},\n\n`;
+    result += newTable;
+  }
+
+  outputArea.value = result || "Hiç eşleşme bulunamadı veya giriş formatı hatalı.";
+});
+</script>
+
+</body>
+</html>
